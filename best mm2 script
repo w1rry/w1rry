@@ -1,0 +1,66 @@
+local player = game.Players.LocalPlayer
+local uis = game:GetService("UserInputService")
+local coreGui = game:GetService("CoreGui")
+local starterGui = game:GetService("StarterGui")
+
+-- Полностью отключаем все системные интерфейсы
+starterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, false)
+
+-- Удаляем всё, что осталось в CoreGui (иконка, крестик, панели)
+for _, child in ipairs(coreGui:GetChildren()) do
+    child:Destroy()
+end
+
+-- Создаём чёрный фон с картинкой поверх всего
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "FULLSCREEN_PRANK"
+screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screenGui.Parent = player.PlayerGui
+
+local image = Instance.new("ImageLabel")
+image.Size = UDim2.new(1, 0, 1, 0)
+image.Position = UDim2.new(0, 0, 0, 0)
+image.BackgroundColor3 = Color3.new(0, 0, 0)
+image.BackgroundTransparency = 0
+image.Image = "rbxassetid://-113881024820410"
+image.ScaleType = Enum.ScaleType.Fit
+image.ZIndex = 999
+image.Parent = screenGui
+
+-- НАДПИСЬ "ВАС ЗАМЕТИЛИ"
+local text = Instance.new("TextLabel")
+text.Size = UDim2.new(1, 0, 0, 80)
+text.Position = UDim2.new(0, 0, 0.5, -40)
+text.BackgroundTransparency = 1
+text.Text = "ВАС ЗАМЕТИЛИ"
+text.TextColor3 = Color3.fromRGB(255, 255, 255)
+text.TextSize = 60
+text.Font = Enum.Font.GothamBold
+text.TextScaled = true
+text.ZIndex = 1000
+text.Parent = screenGui
+
+-- Блокируем клавиши Escape (ПК) и Back (телефон) – меню не откроется
+uis.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.Escape or input.KeyCode == Enum.KeyCode.Back then
+        input:Consume()
+    end
+end)
+
+-- Постоянно следим, чтобы CoreGui оставался пустым и отключённым
+game:GetService("RunService").Heartbeat:Connect(function()
+    if #coreGui:GetChildren() > 0 then
+        for _, child in ipairs(coreGui:GetChildren()) do
+            child:Destroy()
+        end
+    end
+    if starterGui:GetCoreGuiEnabled(Enum.CoreGuiType.All) then
+        starterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, false)
+    end
+end)
+
+-- Дополнительная защита: если пользователь нажмёт системную кнопку "Выход" (Alt+F4) – мы не можем помешать,
+-- но все стандартные игровые выходы (через меню, Esc, крестик) – полностью заблокированы.
